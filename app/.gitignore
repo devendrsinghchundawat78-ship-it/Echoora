@@ -1,0 +1,3 @@
+/build
+# *.keystore (debug keystore allowed)
+src/main/cpp/vibrafp/third_party/fftw-android/
