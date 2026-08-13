@@ -66,17 +66,19 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          mkdir -p keystore
+          # build.gradle.kts resolves storeFile relative to the app module,
+          # so the keystore must live at app/keystore/release.keystore
+          mkdir -p app/keystore
           if [ -n "$RELEASE_KEYSTORE_BASE64" ] && [ -n "$STORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
             echo "Using release keystore from GitHub secrets"
-            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > keystore/release.keystore
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > app/keystore/release.keystore
             echo "STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
             echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
             echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
           else
             echo "No signing secrets found - generating a temporary CI keystore (NOT for Play Store uploads)"
             keytool -genkeypair -v \
-              -keystore keystore/release.keystore \
+              -keystore app/keystore/release.keystore \
               -alias ci-release \
               -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass ci-release-pass -keypass ci-release-pass \
