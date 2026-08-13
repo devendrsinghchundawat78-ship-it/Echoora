@@ -350,6 +350,8 @@ class MusicService :
 
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
 
+    private var musicPopupManager: iad1tya.echo.music.popup.MusicPopupManager? = null
+
     private val binder = MusicBinder()
 
     inner class MusicBinder : Binder() {
@@ -658,6 +660,17 @@ class MusicService :
                 ).setBitmapLoader(CoilBitmapLoader(this, scope))
                 .build()
         player.repeatMode = dataStore.get(RepeatModeKey, REPEAT_MODE_OFF)
+
+        // Floating Music Popup overlay (New Features). Controls the SAME player
+        // and currentMediaMetadata used by the main app — no second player.
+        musicPopupManager = iad1tya.echo.music.popup.MusicPopupManager(
+            context = this,
+            scope = scope,
+            playerProvider = { player },
+            metadataFlow = currentMediaMetadata,
+            toggleLike = ::toggleLike,
+        )
+        musicPopupManager?.start()
 
         
         if (dataStore.get(RememberShuffleAndRepeatKey, true)) {
@@ -3260,6 +3273,8 @@ class MusicService :
 
     override fun onDestroy() {
         isRunning = false
+        musicPopupManager?.dispose()
+        musicPopupManager = null
         releasePrebuffered()
 
         try {

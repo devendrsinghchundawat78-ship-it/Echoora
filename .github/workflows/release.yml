@@ -1,0 +1,114 @@
+name: Release APK
+
+# Builds signed release APKs and (optionally) publishes a GitHub Release.
+#
+# Signing:
+#   - If GitHub secrets RELEASE_KEYSTORE_BASE64 + STORE_PASSWORD + KEY_ALIAS +
+#     KEY_PASSWORD are configured, the APK is signed with your real release
+#     keystore (REQUIRED for Play Store / F-Droid distribution).
+#   - Otherwise a temporary CI keystore is generated on the fly so the build
+#     still produces a signed, installable release APK. NOTE: the signature
+#     changes every run, so CI-signed APKs cannot be used to update an existing
+#     install signed with a different key.
+#
+# To set up real signing (one time):
+#   1. base64 encode your keystore:  base64 -w0 release.keystore
+#   2. Add these secrets under Settings → Secrets and variables → Actions:
+#        RELEASE_KEYSTORE_BASE64, STORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'V*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Prepare signing keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          mkdir -p keystore
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ] && [ -n "$STORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "Using release keystore from GitHub secrets"
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > keystore/release.keystore
+            echo "STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+          else
+            echo "No signing secrets found - generating a temporary CI keystore (NOT for Play Store uploads)"
+            keytool -genkeypair -v \
+              -keystore keystore/release.keystore \
+              -alias ci-release \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass ci-release-pass -keypass ci-release-pass \
+              -dname "CN=CI Release, OU=Echoora, O=Echoora, L=NA, ST=NA, C=US"
+            echo "STORE_PASSWORD=ci-release-pass" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=ci-release" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=ci-release-pass" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build release APK (Universal, FOSS - no Google Services needed)
+        run: ./gradlew assembleUniversalFossRelease
+
+      - name: Collect APKs
+        run: |
+          VERSION_NAME=$(grep 'versionName =' app/build.gradle.kts | head -n1 | awk -F '"' '{print $2}')
+          mkdir -p artifacts
+          find app/build/outputs/apk -name "*.apk" -path "*release*" | while read -r apk; do
+            base=$(basename "$apk" .apk)
+            cp "$apk" "artifacts/Echoora-${VERSION_NAME}-${base}.apk"
+          done
+          echo "Produced artifacts:"
+          ls -la artifacts/
+
+      - name: Upload APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Echoora-Release-APKs
+          path: artifacts/*.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.apk
+          generate_release_notes: true

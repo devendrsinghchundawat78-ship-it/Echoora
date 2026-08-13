@@ -1029,4 +1029,45 @@
     <string name="lossless_audio_warning">Lossless audio requires a fast connection. It may consume more data and battery. Continue?</string>
     <string name="legacy_icon">Legacy Icon</string>
     <string name="legacy_icon_desc">Revert the app icon back to the original legacy design</string>
+
+    <!-- New Features settings -->
+    <string name="new_features">New Features</string>
+    <string name="new_features_desc">Try experimental and beta features and control them from one place</string>
+    <string name="new_features_data_saver">Data Saver Mode (Beta)</string>
+    <string name="new_features_data_saver_desc">Automatically reduce data usage during playback on limited connections</string>
+    <string name="new_features_listen_together">Listen Together</string>
+    <string name="new_features_listen_together_desc">Sync music in real time with friends</string>
+    <string name="new_features_lossless">Lossless Music Hub</string>
+    <string name="new_features_lossless_desc">Stream and contribute high-fidelity FLAC audio</string>
+
+    <!-- App UI theme selector -->
+    <string name="app_ui_theme">App UI</string>
+    <string name="app_ui_theme_desc">Switch between the original layout and the new premium music UI</string>
+    <string name="app_ui_theme_original">Original UI</string>
+    <string name="app_ui_theme_premium">Premium Music UI</string>
+
+    <!-- App icon picker -->
+    <string name="app_icon">App Icon</string>
+    <string name="app_icon_desc">Choose your launcher icon</string>
+    <string name="app_icon_classic">Classic</string>
+    <string name="app_icon_mono">Mono</string>
+    <string name="app_icon_crimson">Crimson</string>
+    <string name="app_icon_noir">Noir</string>
+    <string name="app_icon_updated">Icon updated</string>
+
+    <!-- Floating Music Popup -->
+    <string name="music_popup">Music Popup</string>
+    <string name="music_popup_desc">Floating music bubble over other apps while music plays in the background</string>
+    <string name="music_popup_size">Popup size</string>
+    <string name="music_popup_size_small">Small</string>
+    <string name="music_popup_size_medium">Medium</string>
+    <string name="music_popup_size_large">Large</string>
+    <string name="music_popup_position">Position</string>
+    <string name="music_popup_position_left">Left</string>
+    <string name="music_popup_position_right">Right</string>
+    <string name="music_popup_auto_hide">Auto-hide to edge</string>
+    <string name="music_popup_auto_hide_desc">Collapse the bubble into a thin handle when released near the screen edge</string>
+    <string name="music_popup_permission_title">Overlay permission required</string>
+    <string name="music_popup_permission_desc">To show the floating music bubble above other apps, allow \'Display over other apps\' permission.</string>
+    <string name="music_popup_grant_permission">Grant permission</string>
 </resources>

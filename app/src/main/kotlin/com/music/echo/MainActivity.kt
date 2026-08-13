@@ -7,6 +7,11 @@ import iad1tya.echo.music.ui.screens.settings.RingtoneViewModel
 import iad1tya.echo.music.ui.component.RingtoneTrimmerDialog
 import iad1tya.echo.music.ui.component.RingtoneProgressDialog
 import iad1tya.echo.music.ui.component.AppFloatingNavBar
+import iad1tya.echo.music.ui.premium.PremiumFloatingNavBar
+import iad1tya.echo.music.ui.uitheme.LocalUiThemeMode
+import iad1tya.echo.music.ui.uitheme.UiThemeMode
+import iad1tya.echo.music.ui.uitheme.UiThemeProvider
+import iad1tya.echo.music.ui.uitheme.UiThemeSelector
 import iad1tya.echo.music.ui.component.floatingtabbar.rememberFloatingTabBarScrollConnection
 import iad1tya.echo.music.constants.UseFloatingNavBarKey
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,7 +23,6 @@ import androidx.compose.runtime.getValue
 import android.Manifest
 import android.annotation.SuppressLint
 import androidx.datastore.preferences.core.edit
-import kotlinx.coroutines.flow.first
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
@@ -170,14 +174,7 @@ import iad1tya.echo.music.constants.MiniPlayerBottomSpacing
 import iad1tya.echo.music.constants.MiniPlayerHeight
 import iad1tya.echo.music.constants.NavigationBarAnimationSpec
 import iad1tya.echo.music.constants.NavigationBarHeight
-import iad1tya.echo.music.echomusic.updater.checkForUpdate
-import iad1tya.echo.music.echomusic.updater.getAutoUpdateCheckSetting
-import iad1tya.echo.music.echomusic.updater.isNewerVersion
-import iad1tya.echo.music.echomusic.updater.saveUpdateAvailableState
-import iad1tya.echo.music.echomusic.updater.getUpdateNotificationsSetting
-import iad1tya.echo.music.echomusic.UpdateNotificationHelper
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import iad1tya.echo.music.constants.PauseListenHistoryKey
 import iad1tya.echo.music.constants.PauseSearchHistoryKey
@@ -211,6 +208,7 @@ import iad1tya.echo.music.ui.screens.settings.NavigationTab
 import iad1tya.echo.music.ui.theme.ColorSaver
 import iad1tya.echo.music.ui.theme.DefaultThemeColor
 import iad1tya.echo.music.ui.theme.echomusicTheme
+import iad1tya.echo.music.ui.theme.PremiumTheme
 import iad1tya.echo.music.ui.theme.extractThemeColor
 import iad1tya.echo.music.ui.utils.appBarScrollBehavior
 import iad1tya.echo.music.ui.utils.resetHeightOffset
@@ -423,6 +421,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Applies the active UI theme. Original UI uses the existing dynamic
+     * [echomusicTheme]; Premium UI applies the fixed premium dark palette +
+     * typography globally, so every screen (Search, Library, Player, Settings,
+     * dialogs, …) switches look without any per-screen changes.
+     */
+    @Composable
+    private fun AppThemeSwitch(
+        useDarkTheme: Boolean,
+        pureBlack: Boolean,
+        themeColor: Color,
+        content: @Composable () -> Unit,
+    ) {
+        if (LocalUiThemeMode.current == UiThemeMode.PREMIUM) {
+            PremiumTheme(content = content)
+        } else {
+            echomusicTheme(
+                darkTheme = useDarkTheme,
+                pureBlack = pureBlack,
+                themeColor = themeColor,
+                content = content,
+            )
+        }
+    }
+
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @Composable
@@ -435,32 +458,6 @@ class MainActivity : ComponentActivity() {
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
-
-        LaunchedEffect(Unit) {
-            val prefs = context.dataStore.data.first()
-
-            if (getAutoUpdateCheckSetting(context)) {
-                
-                delay(2000L)
-                checkForUpdate(
-                    context = context,
-                    onSuccess = { latestVersion, isAvailable, _, _, _, _, _, _ ->
-                        val currentVersion = BuildConfig.VERSION_NAME
-                        Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
-                        saveUpdateAvailableState(context, isAvailable)
-                        
-                        if (isAvailable && getUpdateNotificationsSetting(context)) {
-                            Log.d("UpdateCheck", "Posting update notification for $latestVersion")
-                            UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
-                        }
-                    },
-                    onError = {
-                        Log.e("UpdateCheck", "Startup check failed")
-                        
-                    }
-                )
-            }
-        }
 
         LaunchedEffect(enableHighRefreshRate) {
             val window = this@MainActivity.window
@@ -495,8 +492,11 @@ class MainActivity : ComponentActivity() {
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         }
 
-        LaunchedEffect(useDarkTheme) {
-            setSystemBarAppearance(useDarkTheme)
+        val (storedUiTheme) = rememberPreference(AppUiThemeKey, UiThemeMode.ORIGINAL.storageValue)
+        val uiThemeMode = remember(storedUiTheme) { UiThemeMode.fromStorage(storedUiTheme) }
+
+        LaunchedEffect(useDarkTheme, uiThemeMode) {
+            setSystemBarAppearance(useDarkTheme || uiThemeMode == UiThemeMode.PREMIUM)
         }
 
         val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
@@ -554,8 +554,9 @@ class MainActivity : ComponentActivity() {
         val view = LocalView.current
         var lastScrollHapticTime by remember { mutableStateOf(0L) }
 
-        echomusicTheme(
-            darkTheme = useDarkTheme,
+        UiThemeProvider {
+        AppThemeSwitch(
+            useDarkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
@@ -961,7 +962,7 @@ class MainActivity : ComponentActivity() {
                         snackbarHost = { SnackbarHost(snackbarHostState) },
                         topBar = {
                             AnimatedVisibility(
-                                visible = shouldShowTopBar,
+                                visible = shouldShowTopBar && !(LocalUiThemeMode.current == UiThemeMode.PREMIUM && currentRoute == Screens.Home.route),
                                 enter = fadeIn(animationSpec = tween(durationMillis = 300)),
                                 exit = fadeOut(animationSpec = tween(durationMillis = 200))
                             ) {
@@ -1156,31 +1157,49 @@ class MainActivity : ComponentActivity() {
                                     }
 
                                     if (useFloatingNavBar) {
-                                        AppFloatingNavBar(
-                                            navigationItems = navigationItems,
-                                            currentRoute = currentRoute,
-                                            onItemClick = onNavItemClick,
-                                            scrollConnection = floatingNavBarScrollConnection,
-                                            pureBlack = pureBlack,
-                                            showPlayerAccessory = hasDockedPlayerAccessory,
-                                            onAccessoryClick = { playerBottomSheetState.expandSoft() },
-                                            modifier = Modifier
-                                                .align(Alignment.BottomCenter)
-                                                .padding(horizontal = 16.dp)
-                                                .padding(bottom = bottomInset + 8.dp)
-                                                .graphicsLayer {
-                                                    val hiddenOffset =
-                                                        size.height + (bottomInset + 8.dp).toPx()
-                                                    val navBarHeightPx = navigationBarHeight.toPx()
-                                                    translationY = if (navBarHeightPx == 0f) {
-                                                        hiddenOffset
-                                                    } else {
-                                                        val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
-                                                        val slideOffset = hiddenOffset * progress
-                                                        val hideOffset = hiddenOffset * (1 - navBarHeightPx / NavigationBarHeight.toPx())
-                                                        slideOffset + hideOffset
-                                                    }
+                                        val floatingNavModifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(horizontal = 16.dp)
+                                            .padding(bottom = bottomInset + 8.dp)
+                                            .graphicsLayer {
+                                                val hiddenOffset =
+                                                    size.height + (bottomInset + 8.dp).toPx()
+                                                val navBarHeightPx = navigationBarHeight.toPx()
+                                                translationY = if (navBarHeightPx == 0f) {
+                                                    hiddenOffset
+                                                } else {
+                                                    val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
+                                                    val slideOffset = hiddenOffset * progress
+                                                    val hideOffset = hiddenOffset * (1 - navBarHeightPx / NavigationBarHeight.toPx())
+                                                    slideOffset + hideOffset
                                                 }
+                                            }
+
+                                        UiThemeSelector(
+                                            original = {
+                                                AppFloatingNavBar(
+                                                    navigationItems = navigationItems,
+                                                    currentRoute = currentRoute,
+                                                    onItemClick = onNavItemClick,
+                                                    scrollConnection = floatingNavBarScrollConnection,
+                                                    pureBlack = pureBlack,
+                                                    showPlayerAccessory = hasDockedPlayerAccessory,
+                                                    onAccessoryClick = { playerBottomSheetState.expandSoft() },
+                                                    modifier = floatingNavModifier
+                                                )
+                                            },
+                                            premium = {
+                                                PremiumFloatingNavBar(
+                                                    navigationItems = navigationItems,
+                                                    currentRoute = currentRoute,
+                                                    onItemClick = onNavItemClick,
+                                                    scrollConnection = floatingNavBarScrollConnection,
+                                                    pureBlack = pureBlack,
+                                                    showPlayerAccessory = hasDockedPlayerAccessory,
+                                                    onAccessoryClick = { playerBottomSheetState.expandSoft() },
+                                                    modifier = floatingNavModifier
+                                                )
+                                            }
                                         )
                                     } else {
                                         Box(
@@ -1469,6 +1488,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
+            }
             }
         }
     }

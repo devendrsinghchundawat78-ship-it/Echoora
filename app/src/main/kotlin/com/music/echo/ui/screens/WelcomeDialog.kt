@@ -92,7 +92,10 @@ fun WelcomeDialog(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Button(
-                    onClick = onDismissRequest,
+                    onClick = {
+                        openInstagram()
+                        onDismissRequest()
+                    },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -100,7 +103,7 @@ fun WelcomeDialog(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Follow", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }

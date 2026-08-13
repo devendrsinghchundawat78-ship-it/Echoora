@@ -116,6 +116,37 @@ Use this for other services like OpenAI, Anthropic, or local LLMs.
 3. If using **Custom**, enter your provider's **Base URL**.
 4. Enter your **API Key**.
 
+## Releasing via GitHub Actions
+
+A release workflow is included at `.github/workflows/release.yml`. It:
+
+- Builds the signed **Universal FOSS** release APK (`assembleUniversalFossRelease`).
+- Uploads the APK as a build artifact on every run.
+- Publishes a GitHub Release (with auto-generated notes) when you push a tag
+  like `v1.2.3` (or `V1.2.3`).
+
+You can also trigger it manually from the **Actions** tab (`Run workflow`).
+
+### Signing
+
+By default the workflow generates a **temporary CI keystore** so the build
+always succeeds and produces an installable APK. This CI-signed APK is fine for
+testing, but its signature changes on every run, so it **cannot** be used to
+update an existing install (and is **not** suitable for Play Store / F-Droid).
+
+For real releases, add these secrets in
+**Settings → Secrets and variables → Actions**:
+
+| Secret | Description |
+|---|---|
+| `RELEASE_KEYSTORE_BASE64` | Your keystore file base64-encoded: `base64 -w0 release.keystore` |
+| `STORE_PASSWORD` | Keystore password |
+| `KEY_ALIAS` | Key alias |
+| `KEY_PASSWORD` | Key password |
+
+When all four are present, the workflow signs with your real keystore instead of
+generating a temporary one.
+
 ## Important Files
 
 ### Confidential Files (Never commit these)

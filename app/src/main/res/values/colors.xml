@@ -4,6 +4,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="ic_launcher_static_background">#e63c28</color>
     <color name="legacy_icon_background">#000000</color>
+    <color name="ic_launcher_mono_background">#000000</color>
+    <color name="ic_launcher_crimson_background">#000000</color>
+    <color name="ic_launcher_noir_background">#000000</color>
+    <color name="ic_launcher_classic_background">#FFFFFF</color>
     
     <!-- Widget colors for light mode -->
     <color name="widget_text_primary">#1C1B1F</color>

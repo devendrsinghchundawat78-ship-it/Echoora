@@ -105,6 +105,17 @@ val AudioQualityKey = stringPreferencesKey("audioQuality")
 val IpVersionKey = stringPreferencesKey("ipVersion")
 
 const val LOSSLESS_ENABLED = true
+val LosslessEnabledKey = booleanPreferencesKey("losslessEnabled")
+val AppUiThemeKey = stringPreferencesKey("appUiTheme")
+val AppIconKey = stringPreferencesKey("appIcon")
+
+// Floating Music Popup
+val MusicPopupEnabledKey = booleanPreferencesKey("musicPopupEnabled")
+val MusicPopupSizeKey = stringPreferencesKey("musicPopupSize")
+val MusicPopupSideKey = stringPreferencesKey("musicPopupSide")
+val MusicPopupAutoHideKey = booleanPreferencesKey("musicPopupAutoHide")
+val MusicPopupXKey = floatPreferencesKey("musicPopupX")
+val MusicPopupYKey = floatPreferencesKey("musicPopupY")
 
 enum class AudioQuality {
     OPUS,

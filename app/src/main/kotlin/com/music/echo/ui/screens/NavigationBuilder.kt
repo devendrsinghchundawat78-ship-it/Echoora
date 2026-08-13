@@ -46,9 +46,11 @@ import iad1tya.echo.music.ui.screens.settings.DarkMode
 import iad1tya.echo.music.ui.screens.settings.PlayerSettings
 import iad1tya.echo.music.ui.screens.settings.PrivacySettings
 import iad1tya.echo.music.ui.screens.settings.RomanizationSettings
-import iad1tya.echo.music.ui.screens.settings.SettingsScreen
 import iad1tya.echo.music.ui.screens.settings.EchoExtractorSettings
 import iad1tya.echo.music.ui.screens.settings.AccountSettingsScreen
+import iad1tya.echo.music.ui.screens.settings.NewFeaturesSettings
+import iad1tya.echo.music.ui.premium.PremiumHomeScreen
+import iad1tya.echo.music.ui.uitheme.UiThemeSelector
 import iad1tya.echo.music.ui.screens.settings.StorageSettings
 import iad1tya.echo.music.ui.screens.settings.ThemeScreen
 import iad1tya.echo.music.ui.screens.settings.AiSettings
@@ -56,8 +58,7 @@ import iad1tya.echo.music.ui.screens.settings.AiSettings
 import iad1tya.echo.music.ui.screens.settings.integrations.ListenTogetherSettings
 import iad1tya.echo.music.ui.screens.recognition.RecognitionScreen
 import iad1tya.echo.music.ui.screens.recognition.RecognitionHistoryScreen
-import iad1tya.echo.music.ui.screens.settings.UpdateSettings
-import iad1tya.echo.music.echomusic.updater.UpdateScreen
+import iad1tya.echo.music.ui.screens.settings.SettingsScreen
 import iad1tya.echo.music.utils.rememberEnumPreference
 import iad1tya.echo.music.utils.rememberPreference
 import iad1tya.echo.music.echomusic.changelog.ChangelogScreen
@@ -73,7 +74,14 @@ fun NavGraphBuilder.navigationBuilder(
     snackbarHostState: SnackbarHostState
 ) {
     composable(Screens.Home.route) {
-        HomeScreen(navController = navController, snackbarHostState = snackbarHostState)
+        UiThemeSelector(
+            original = {
+                HomeScreen(navController = navController, snackbarHostState = snackbarHostState)
+            },
+            premium = {
+                PremiumHomeScreen(navController = navController)
+            },
+        )
     }
 
     composable("settings/echo_extractor") {
@@ -340,17 +348,14 @@ fun NavGraphBuilder.navigationBuilder(
 
 
     composable(
-        route = "settings/update?highlightKey={highlightKey}",
-        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true })
-    ) { backStackEntry ->
-       UpdateSettings(navController, scrollBehavior, highlightKey = backStackEntry.arguments?.getString("highlightKey"))
-    }
-
-    composable(
         route = "settings/account?highlightKey={highlightKey}",
         arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true })
     ) { backStackEntry ->
         AccountSettingsScreen(navController, scrollBehavior, highlightKey = backStackEntry.arguments?.getString("highlightKey"))
+    }
+
+    composable("settings/new_features") {
+        NewFeaturesSettings(navController, scrollBehavior)
     }
 
     composable(
@@ -464,10 +469,6 @@ fun NavGraphBuilder.navigationBuilder(
         arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true })
     ) { backStackEntry ->
         AboutScreen(navController, scrollBehavior, highlightKey = backStackEntry.arguments?.getString("highlightKey"))
-    }
-
-    composable("update") {
-        UpdateScreen(navController)
     }
 
     composable("login") {

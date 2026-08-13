@@ -53,7 +53,6 @@ import iad1tya.echo.music.ui.component.Material3SettingsGroup
 import iad1tya.echo.music.ui.component.Material3SettingsItem
 import iad1tya.echo.music.ui.screens.Screens
 import iad1tya.echo.music.ui.utils.backToMain
-import iad1tya.echo.music.echomusic.updater.getUpdateAvailableState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,12 +64,12 @@ highlightKey: String? = null) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val isUpdateAvailable = getUpdateAvailableState(context) && iad1tya.echo.music.echomusic.updater.getAutoUpdateCheckSetting(context)
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     val searchLower = searchQuery.lowercase()
 
     val accountText = stringResource(R.string.account)
+    val newFeaturesText = stringResource(R.string.new_features)
     val appearanceText = stringResource(R.string.appearance)
     val playerText = stringResource(R.string.player_and_audio)
     val listenTogetherText = stringResource(R.string.listen_together)
@@ -79,7 +78,6 @@ highlightKey: String? = null) {
     val privacyText = stringResource(R.string.privacy)
     val storageText = stringResource(R.string.storage)
     val backupText = stringResource(R.string.backup_restore)
-    val systemUpdateText = stringResource(R.string.system_update)
     val aboutText = stringResource(R.string.about)
 
     val scrollState = rememberScrollState()
@@ -139,6 +137,17 @@ highlightKey: String? = null) {
                         icon = painterResource(R.drawable.account),
                         title = { Text(accountText) },
                         onClick = { navController.navigate("settings/account") }
+                    )
+                )
+            }
+
+            if (newFeaturesText.lowercase().contains(searchLower)) {
+                add(
+                    Material3SettingsItem(
+                        isHighlighted = (highlightKey == newFeaturesText),
+                        icon = painterResource(R.drawable.sparks),
+                        title = { Text(newFeaturesText) },
+                        onClick = { navController.navigate("settings/new_features") }
                     )
                 )
             }
@@ -232,24 +241,6 @@ highlightKey: String? = null) {
                         icon = painterResource(R.drawable.restore),
                         title = { Text(backupText) },
                         onClick = { navController.navigate("settings/backup_restore") }
-                    )
-                )
-            }
-            if (systemUpdateText.lowercase().contains(searchLower)) {
-                add(
-                    Material3SettingsItem(
-    isHighlighted = (highlightKey == systemUpdateText),
-                        icon = painterResource(if (isUpdateAvailable) R.drawable.ic_launcher_nobg else R.drawable.update),
-                        title = { Text(systemUpdateText) },
-                        description = if (isUpdateAvailable) {
-                            {
-                                Text(
-                                    text = stringResource(R.string.update_available),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        } else null,
-                        onClick = { navController.navigate("settings/update") }
                     )
                 )
             }
