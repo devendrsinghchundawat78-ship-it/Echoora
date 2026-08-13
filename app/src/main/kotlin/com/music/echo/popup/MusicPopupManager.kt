@@ -8,11 +8,11 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
+import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.animation.ValueAnimator
-import androidx.compose.ui.platform.ComposeView
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -36,7 +36,7 @@ import timber.log.Timber
 /**
  * Manages the floating Music Popup overlay window.
  *
- * The popup is a single [ComposeView] added to the [WindowManager]. It reads the
+ * The popup is a single [PopupComposeHost] added to the [WindowManager]. It reads the
  * SAME playback state exposed by [MusicService] (the [ExoPlayer] and its
  * [MediaMetadata] flow) — there is no second audio player or media session.
  *
@@ -77,7 +77,7 @@ class MusicPopupManager(
     @Volatile private var enabled = false
     @Volatile private var side = MusicPopupSide.RIGHT
 
-    private var overlayView: ComposeView? = null
+    private var overlayView: View? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isVisible = false
     private var positionAnimator: ValueAnimator? = null
@@ -223,8 +223,8 @@ class MusicPopupManager(
         positionAnimator?.cancel()
         refreshSafeInsets()
 
-        val view = ComposeView(context).apply {
-            setContent { MusicPopupOverlay(this@MusicPopupManager) }
+        val view = PopupComposeHost(context) {
+            MusicPopupOverlay(this@MusicPopupManager)
         }
         layoutParams = createLayoutParams()
         restoreOrPlaceDefaultPosition()
