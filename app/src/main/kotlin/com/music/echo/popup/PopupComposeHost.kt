@@ -31,7 +31,7 @@ class PopupComposeHost(
 ) : AbstractComposeView(context), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
-    private val viewModelStore = ViewModelStore()
+    private val _viewModelStore = ViewModelStore()
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
 
     init {
@@ -60,14 +60,14 @@ class PopupComposeHost(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
-        viewModelStore.clear()
+        _viewModelStore.clear()
     }
 
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
     override val viewModelStore: ViewModelStore
-        get() = viewModelStore
+        get() = _viewModelStore
 
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
