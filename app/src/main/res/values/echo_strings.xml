@@ -1047,7 +1047,7 @@
     <string name="app_ui_theme_premium">Premium Music UI</string>
 
     <!-- App icon picker -->
-    <string name="app_icon">App Icon</string>
+    <string name="app_icon_picker">App Icon</string>
     <string name="app_icon_desc">Choose your launcher icon</string>
     <string name="app_icon_classic">Classic</string>
     <string name="app_icon_mono">Mono</string>

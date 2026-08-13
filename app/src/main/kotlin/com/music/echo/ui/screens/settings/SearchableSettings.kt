@@ -17,7 +17,7 @@ fun getAllSearchableSettings(): List<Triple<String, String, String>> {
             Triple(stringResource(R.string.app_ui_theme), "New Features", "settings/new_features"),
             Triple(stringResource(R.string.app_ui_theme_original), "New Features", "settings/new_features"),
             Triple(stringResource(R.string.app_ui_theme_premium), "New Features", "settings/new_features"),
-            Triple(stringResource(R.string.app_icon), "New Features", "settings/new_features"),
+            Triple(stringResource(R.string.app_icon_picker), "New Features", "settings/new_features"),
             Triple(stringResource(R.string.app_icon_classic), "New Features", "settings/new_features"),
             Triple(stringResource(R.string.app_icon_mono), "New Features", "settings/new_features"),
             Triple(stringResource(R.string.app_icon_crimson), "New Features", "settings/new_features"),

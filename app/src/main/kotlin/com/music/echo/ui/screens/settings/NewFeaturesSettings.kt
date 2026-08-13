@@ -129,7 +129,7 @@ fun NewFeaturesSettings(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = stringResource(R.string.app_icon),
+                text = stringResource(R.string.app_icon_picker),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 8.dp, top = 8.dp)
